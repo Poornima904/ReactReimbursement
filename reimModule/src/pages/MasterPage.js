@@ -25,7 +25,6 @@ export default function MasterPage({ onRowClick }) {
     try {
       setLoading(true);
       setItems([]);
-
       if (isFirstLoad) {
         const count = await getTableCount();
         setRowCount(count);
