@@ -1,0 +1,19 @@
+{
+  "name": "project",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "@sap/approuter": "14.4.2",
+    "@sap/html5-repo-mock": "2.1.5"
+  },
+  "scripts": {
+    "build-reimModule": "cd reimModule && if [ ! -d ${workspaceFolder}/ReactReimbursement/reimModule/node_modules/react-scripts ] && [ ! -d ${workspaceFolder}/ReactReimbursement/node_modules/react-scripts ]; then npm i; fi && npm run build"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.1.4",
+    "@mui/x-data-grid": "^7.21.0",
+    "react-router-dom": "^6.27.0"
+  }
+}

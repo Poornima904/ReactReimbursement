@@ -1,0 +1,80 @@
+_schema-version: "3.2"
+ID: ReactReimbursement
+version: 0.0.1
+modules:
+- name: ReactReimbursement-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: ReactReimbursement-destination-service
+    parameters:
+      content-target: true
+  - name: ReactReimbursement_html_repo_host
+    parameters:
+      service-key:
+        name: ReactReimbursement_html_repo_host-key
+  - name: uaa_ReactReimbursement
+    parameters:
+      service-key:
+        name: uaa_ReactReimbursement-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: uniqname_ReactReimbursement_html_repo_host
+          ServiceInstanceName: ReactReimbursement-html5-app-host-service
+          ServiceKeyName: ReactReimbursement_html_repo_host-key
+          sap.cloud.service: uniqname
+        - Authentication: OAuth2UserTokenExchange
+          Name: uniqname_uaa_ReactReimbursement
+          ServiceInstanceName: ReactReimbursement-xsuaa-service
+          ServiceKeyName: uaa_ReactReimbursement-key
+          sap.cloud.service: uniqname
+        existing_destinations_policy: ignore
+  build-parameters:
+    no-source: true
+- name: ReactReimbursement_ui_deployer
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: ReactReimbursement_html_repo_host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - reimModule-content.zip
+      name: reimModule
+      target-path: resources/
+- name: reimModule
+  type: html5
+  path: reimModule
+  build-parameters:
+    builder: custom
+    commands:
+    - npm install
+    - npm run build
+    supported-platforms: []
+resources:
+- name: ReactReimbursement-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      version: 1.0.0
+    service: destination
+    service-name: ReactReimbursement-destination-service
+    service-plan: lite
+- name: ReactReimbursement_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: ReactReimbursement-html5-app-host-service
+    service-plan: app-host
+- name: uaa_ReactReimbursement
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: ReactReimbursement-xsuaa-service
+    service-plan: application
