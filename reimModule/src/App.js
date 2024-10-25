@@ -26,7 +26,8 @@ const App = () => {
       {currentView === "master" ? (
         <MasterPage onRowClick={navigateToObjectPage} /> // Pass navigation function to MasterPage
       ) : (
-        <ObjectPage id={selectedId} onBack={navigateToMasterPage} /> // Pass selected ID and back function to ObjectPage
+        <ObjectPage id={selectedId} onBack={navigateToMasterPage} /> 
+       
       )}
     </div>
   );

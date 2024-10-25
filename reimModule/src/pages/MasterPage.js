@@ -83,20 +83,16 @@ export default function MasterPage({ onRowClick }) {
           <Button variant="contained" color="primary" onClick={() => loadData(true)}>
             Apply Filters
           </Button>
-        </Toolbar>
-      </Box>
-
-      <Toolbar>
-        <Typography variant="h6" style={{ flex: 1 }}>
-          Reimbursement Records
-        </Typography>
-        <Button variant="contained" color="primary" onClick={() => console.log("Create button clicked")}>
+          <Button variant="outlined" color="secondary" style = {{right:"-37%", position:"relative"}} onClick={() => loadData(true)}>
+          Go
+        </Button>
+        <Button variant="contained" color="primary" style={{right:"-38%", position:"relative"}} onClick={() => console.log("Create button clicked")}>
           Create
         </Button>
-        <Button variant="outlined" color="secondary" onClick={() => loadData(true)} style={{ marginLeft: "8px" }}>
-          Refresh
-        </Button>
-      </Toolbar>
+        </Toolbar>
+      </Box>
+      
+        
 
       <Box height="80vh" py={5}>
         <DataGrid
@@ -106,7 +102,7 @@ export default function MasterPage({ onRowClick }) {
           pageSize={PAGE_SIZE}
           paginationMode="server"
           rowCount={rowCount}
-          onRowClick={(params) => onRowClick(params.row.reimbursmentId)} // Trigger the onRowClick prop
+          onRowClick={(params) => onRowClick(params.row.reimbursmentId)} 
         />
       </Box>
     </Container>
