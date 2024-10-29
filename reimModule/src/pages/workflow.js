@@ -4,7 +4,7 @@ import { DataGrid } from "@material-ui/data-grid";
 import { getWorkflowItems, getTableCount } from "api";
 
 
-const Workflow = ({ id, onBack }) => {
+const Workflow = () => {
  
   const [worlflowItems, setItems] = useState([]);
   const [loading, setLoading] = useState(false);

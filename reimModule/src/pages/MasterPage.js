@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Container, Box, Toolbar, Button, Typography, TextField } from "@material-ui/core";
+import { Container, Box, Toolbar, Button, TextField } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
 import { getTableData, getTableCount } from "api";
 
 const columns = [
-  { field: "reimbursmentId", headerName: "Reimbursment ID", width: 250 },
+  { field: "reimbursmentId", headerName: "Reimbursement ID", width: 250 },
   { field: "reimbursementDate", headerName: "Reimbursement Date", flex: 1 },
   { field: "totalAmount", headerName: "Total Amount", flex: 1 },
 ];
 
 const PAGE_SIZE = 15;
 
-export default function MasterPage({ onRowClick }) {
+export default function MasterPage({ onRowClick, onCreateClick }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rowCount, setRowCount] = useState(0);
@@ -33,7 +33,7 @@ export default function MasterPage({ onRowClick }) {
       const _items = await getTableData({
         $top: PAGE_SIZE,
         $skip: skip,
-        ...filterValues // Apply filter values to the request if needed
+        ...filterValues
       });
       const itemsWithIds = _items.map((item, index) => ({
         ...item,
@@ -52,7 +52,6 @@ export default function MasterPage({ onRowClick }) {
   return (
     <Container disableGutters>
       <Box mb={2}>
-        <Toolbar></Toolbar>
         <Toolbar>
           <TextField
             label="Reimbursement ID"
@@ -80,19 +79,17 @@ export default function MasterPage({ onRowClick }) {
             onChange={(e) => setFilterValues({ ...filterValues, totalAmount: e.target.value })}
             style={{ marginRight: "8px" }}
           />
-          <Button variant="contained" color="primary" onClick={() => loadData(true)}>
+          <Button variant="contained" color="primary" onClick={() => loadData(true)} style={{ marginRight: "8px" }}>
             Apply Filters
           </Button>
-          <Button variant="outlined" color="secondary" style = {{right:"-37%", position:"relative"}} onClick={() => loadData(true)}>
-          Go
-        </Button>
-        <Button variant="contained" color="primary" style={{right:"-38%", position:"relative"}} onClick={() => console.log("Create button clicked")}>
-          Create
-        </Button>
+          <Button variant="outlined" color="secondary" style={{ right: "-34%", position: "relative" }} onClick={() => loadData(true)}>
+            Go
+          </Button>
+          <Button variant="contained" color="primary" onClick={onCreateClick} style={{ marginLeft: "auto" }}>
+            Create
+          </Button>
         </Toolbar>
       </Box>
-      
-        
 
       <Box height="80vh" py={5}>
         <DataGrid
@@ -102,7 +99,8 @@ export default function MasterPage({ onRowClick }) {
           pageSize={PAGE_SIZE}
           paginationMode="server"
           rowCount={rowCount}
-          onRowClick={(params) => onRowClick(params.row.reimbursmentId)} 
+          onPageChange={(params) => loadData(false, params.page * PAGE_SIZE)}
+          onRowClick={(params) => onRowClick(params.row.reimbursmentId)}
         />
       </Box>
     </Container>

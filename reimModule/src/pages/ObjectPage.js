@@ -4,12 +4,24 @@ import React, { useEffect, useState } from "react";
 import { DataGrid } from "@material-ui/data-grid";
 import Attachments from "./Attachments";
 import Workflow from "./workflow";
+import Comments from "./Comments"
 
-const ObjectPage = ({ id, onBack }) => {
+const ObjectPage = ({ id, onBack, fromCreate }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [reimItems, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rowCount, setRowCount] = useState(0);
+
+  const handleCreate = () => {
+    // Handle the create logic
+    console.log("Creating a new entry...");
+  };
+
+  const handleDiscardDraft = () => {
+    // Handle discard draft logic
+    console.log("Discarding the draft...");
+    onBack(); // Go back to MasterPage
+  };
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -57,10 +69,13 @@ const ObjectPage = ({ id, onBack }) => {
   }, []);
 
   return (
-    <div style={{ padding: "16px" }}>
+    <Box padding={2}>
+
+
       <Button variant="outlined" color="primary" onClick={onBack} style={{ marginRight: "92%" }}>
         Back
       </Button>
+
       <Typography variant="h5" style={{ marginTop: "16px", marginBottom: "16px", marginRight: "95%" }}>
         {id}
       </Typography>
@@ -136,9 +151,9 @@ const ObjectPage = ({ id, onBack }) => {
         >
           <Typography variant="h6" style={{ marginRight: "95%" }}><strong>Attachments</strong></Typography>
           <Typography variant="body1">
-           
-            <Attachments/>      {/* adding file named Attachments.js*/}
-            </Typography>
+
+            <Attachments />      {/* adding file named Attachments.js*/}
+          </Typography>
         </Box>
 
         {/* Workflow History========================================================================= */}
@@ -150,9 +165,9 @@ const ObjectPage = ({ id, onBack }) => {
           }}
         >
           <Typography variant="h6" style={{ marginRight: "90%" }}><strong>Workflow History</strong></Typography>
-          <Workflow/>
-          
-          
+          <Workflow />
+
+
         </Box>
 
         {/* Comments========================================================================= */}
@@ -164,29 +179,72 @@ const ObjectPage = ({ id, onBack }) => {
           }}
         >
           <Typography variant="h6" style={{ marginRight: "95%" }}><strong>Comments</strong></Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            style={{ marginBottom: "4px", marginLeft: "85%" }}
-            onClick={() => console.log("Comment History clicked")}
-          >
-            Comment History
-          </Button>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box flexGrow={1} mr={2}>
-              <OutlinedInput
-                placeholder="Add a comment..."
-                multiline
-                rows={3}
-                fullWidth
-                variant="outlined"
-              />
-            </Box>
-          </Box>
+          <Comments />
+
+
         </Box>
       </Box>
-    </div>
+
+      {fromCreate && (
+        <Box
+          display="flex"
+          justifyContent="flex-end"
+          marginTop={2}
+          style={{
+            backgroundColor: "#f0f0f0", // Light grey background
+            padding: "8px", // Add padding around the footer
+            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)", // Box shadow for depth
+          }}
+        >
+         <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreate}
+            style={{
+              marginRight: "8px",
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Shadow for Create button
+              transition: "background-color 0.3s ease, transform 0.3s ease", // Smooth transition
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = "#1976d2"; // Darken color on hover
+              e.currentTarget.style.transform = "scale(1.05)"; // Slightly scale up on hover
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = ""; // Reset color on mouse out
+              e.currentTarget.style.transform = "scale(1)"; // Reset scale on mouse out
+            }}
+          >
+            Create
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleDiscardDraft}
+            style={{
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Shadow for Discard Draft button
+              transition: "background-color 0.3s ease, transform 0.3s ease", // Smooth transition
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(255, 0, 0, 0.1)"; // Lighten color on hover
+              e.currentTarget.style.transform = "scale(1.05)"; // Slightly scale up on hover
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = ""; // Reset color on mouse out
+              e.currentTarget.style.transform = "scale(1)"; // Reset scale on mouse out
+            }}
+          >
+            Discard Draft
+          </Button>
+        </Box>
+
+      )
+      };
+    </Box>
   );
 };
+
+
+
 
 export default ObjectPage;

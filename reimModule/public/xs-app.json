@@ -17,6 +17,13 @@
       "target": "$1",
       "service": "html5-apps-repo-rt",
       "authenticationType": "xsuaa"
+    },
+    {
+      "authenticationType": "none",
+      "csrfProtection": false,
+      "source": "^/ReimburseDestReact/(.*)$",
+      "destination": "ReimburseDestReact",
+      "target": "$1"
     }
   ]
 }
