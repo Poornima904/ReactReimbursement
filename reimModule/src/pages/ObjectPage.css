@@ -1,0 +1,36 @@
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: white;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+.tab-app-bar {
+    background-color: #f0f0f0;
+    box-shadow: none;
+}
+.tab-indicator {
+    background-color: black;
+}
+
+.tab-label {
+    color: black;
+}
+
+
+/* Section Styling */
+.section-box {
+    padding: 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    background-color: #f9f9f9;
+}
+
+.highlighted-section {
+    background-color: #e0f7fa;
+    border: 2px solid #00796b;
+}
+
+.default-section {
+    border: 1px solid #ccc;
+}

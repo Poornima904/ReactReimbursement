@@ -1,10 +1,11 @@
 import { Button, Box, Typography, AppBar, Tabs, Tab, OutlinedInput, Toolbar } from "@material-ui/core";
 import { getReimbursementItems, getTableCount } from "api";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DataGrid } from "@material-ui/data-grid";
 import Attachments from "./Attachments";
 import Workflow from "./workflow";
 import Comments from "./Comments";
+import "./ObjectPage.css";
 
 const ObjectPage = ({ id, onBack, fromCreate }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -12,6 +13,16 @@ const ObjectPage = ({ id, onBack, fromCreate }) => {
   const [loading, setLoading] = useState(false);
   const [rowCount, setRowCount] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [reimbursementId, setReimbursementId] = useState("");
+  const [reimbursementDate, setReimbursementDate] = useState("11-11-2024");
+  const [totalAmount, setTotalAmount] = useState("9000");
+  const [status, setStatus] = useState("New");
+
+  const generalInfoRef = useRef(null);
+  const detailsRef = useRef(null);
+  const attachmentsRef = useRef(null);
+  const workflowRef = useRef(null);
+  const commentsRef = useRef(null);
 
   const handleEdit = () => {
     setIsEditing(true); // Enable editing mode
@@ -32,6 +43,8 @@ const ObjectPage = ({ id, onBack, fromCreate }) => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    const refs = [generalInfoRef, detailsRef, attachmentsRef, workflowRef, commentsRef];
+    refs[newValue].current.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const columns = [
@@ -74,8 +87,8 @@ const ObjectPage = ({ id, onBack, fromCreate }) => {
   }, []);
 
   return (
-    <Box padding={2} height="100vh" overflow="hidden" display="flex" flexDirection="column">
-      <Box flexGrow={1} overflow="auto" paddingBottom="80px"> {/* Bottom padding to prevent overlap with footer */}
+    <Box height="100vh" display="flex" flexDirection="column">
+      <Box className="sticky-header">
         <Button variant="outlined" color="primary" onClick={onBack} style={{ marginRight: "92%" }}>
           Back
         </Button>
@@ -90,55 +103,46 @@ const ObjectPage = ({ id, onBack, fromCreate }) => {
           )}
         </Toolbar>
 
-        <AppBar position="static" style={{ backgroundColor: "#f0f0f0", boxShadow: "none" }}>
+        <AppBar position="static" className="tab-app-bar">
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
             variant="scrollable"
             scrollButtons="auto"
-            TabIndicatorProps={{ style: { backgroundColor: "black" } }}
+            TabIndicatorProps={{ className: "tab-indicator" }}
           >
-            <Tab label="General Information" style={{ color: "black" }} />
-            <Tab label="Reimbursement Details" style={{ color: "black" }} />
-            <Tab label="Attachments" style={{ color: "black" }} />
-            <Tab label="Workflow History" style={{ color: "black" }} />
-            <Tab label="Comments" style={{ color: "black" }} />
+            <Tab label="General Information" className="tab-label" />
+            <Tab label="Reimbursement Details" className="tab-label" />
+            <Tab label="Attachments" className="tab-label" />
+            <Tab label="Workflow History" className="tab-label" />
+            <Tab label="Comments" className="tab-label" />
           </Tabs>
         </AppBar>
+      </Box>
 
-        <Box padding={2} border={1} borderColor="grey.300" borderRadius="4px" marginTop="16px">
-          {/* General Information */}
-          <Box
-            style={{
-              backgroundColor: activeTab === 0 ? "#f0f0f0" : "transparent",
-              padding: "16px",
-              marginRight: "70%"
-            }}
-          >
-            <Typography variant="h6" style={{ marginRight: "60%" }}><strong>General Information</strong></Typography>
+      <Box flexGrow={1} overflow="auto" padding={2} marginTop="16px">
+        <Box paddingBottom="80px">
+
+          <Box ref={generalInfoRef} className={`section-box ${activeTab === 0 ? "highlighted-section" : "default-section"}`}>
+            <Typography variant="h6"><strong>General Information</strong></Typography>
             <Box display="flex" flexDirection="row" alignItems="center" marginTop={2}>
               <Box marginRight={2}>
-                <Typography variant="body1"><strong>Reimbursement Date:</strong> {'11-11-2024'}</Typography>
+                <Typography variant="body1"><strong>Reimbursement Date:</strong></Typography>
+                <OutlinedInput value={reimbursementDate} onChange={(e) => setReimbursementDate(e.target.value)} placeholder="Reimbursement Date" />
               </Box>
               <Box marginRight={2}>
-                <Typography variant="body1"><strong>Total Amount:</strong> {'9000'}</Typography>
+                <Typography variant="body1"><strong>Total Amount:</strong></Typography>
+                <OutlinedInput value={totalAmount} onChange={(e) => setTotalAmount(e.target.value)} placeholder="Total Amount" />
               </Box>
-              <Box marginRight={2}>
-                <Typography variant="body1"><strong>Status:</strong> {'New'}</Typography>
+              <Box>
+                <Typography variant="body1"><strong>Status:</strong></Typography>
+                <OutlinedInput value={status} onChange={(e) => setStatus(e.target.value)} placeholder="Status" />
               </Box>
-          
             </Box>
           </Box>
 
-          {/* Reimbursement Details */}
-          <Box
-            style={{
-              backgroundColor: activeTab === 1 ? "#f0f0f0" : "transparent",
-              padding: "16px",
-              marginTop: "16px"
-            }}
-          >
-            <Typography variant="h6" style={{ marginRight: "88%" }}><strong>Reimbursement Details</strong></Typography>
+          <Box ref={detailsRef} className={`section-box ${activeTab === 1 ? "highlighted-section" : "default-section"}`}>
+            <Typography variant="h6"><strong>Reimbursement Details</strong></Typography>
             <Box py={5}>
               <DataGrid
                 loading={loading}
@@ -152,43 +156,23 @@ const ObjectPage = ({ id, onBack, fromCreate }) => {
             </Box>
           </Box>
 
-          {/* Attachments */}
-          <Box
-            style={{
-              backgroundColor: activeTab === 2 ? "#f0f0f0" : "transparent",
-              padding: "16px",
-              marginTop: "16px"
-            }}
-          >
-            <Typography variant="h6" style={{ marginRight: "95%" }}><strong>Attachments</strong></Typography>
+          <Box ref={attachmentsRef} className={`section-box ${activeTab === 2 ? "highlighted-section" : "default-section"}`}>
+            <Typography variant="h6"><strong>Attachments</strong></Typography>
             <Attachments />
           </Box>
 
-          {/* Workflow History */}
-          <Box
-            style={{
-              backgroundColor: activeTab === 3 ? "#f0f0f0" : "transparent",
-              padding: "16px",
-              marginTop: "16px"
-            }}
-          >
-            <Typography variant="h6" style={{ marginRight: "90%" }}><strong>Workflow History</strong></Typography>
+          <Box ref={workflowRef} className={`section-box ${activeTab === 3 ? "highlighted-section" : "default-section"}`}>
+            <Typography variant="h6"><strong>Workflow History</strong></Typography>
             <Workflow />
           </Box>
 
-          {/* Comments */}
-          <Box
-            style={{
-              backgroundColor: activeTab === 4 ? "#f0f0f0" : "transparent",
-              padding: "16px",
-              marginTop: "16px"
-            }}
-          >
-            <Typography variant="h6" style={{ marginRight: "95%" }}><strong>Comments</strong></Typography>
+          <Box ref={commentsRef} className={`section-box ${activeTab === 4 ? "highlighted-section" : "default-section"}`}>
+            <Typography variant="h6"><strong>Comments</strong></Typography>
             <Comments />
           </Box>
         </Box>
       </Box>
+
 
       {/* Footer */}
       {isEditing && (
