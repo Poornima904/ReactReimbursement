@@ -3,24 +3,27 @@ import "./App.css";
 import AppBar from "components/AppBar";
 import MasterPage from "pages/MasterPage";
 import ObjectPage from "pages/ObjectPage";
+import ObjectCreate from "pages/ObjectCreate"; // Import the new ObjectCreate component
 
 const App = () => {
-  const [currentView, setCurrentView] = useState("master"); // Tracks which view to show
-  const [selectedId, setSelectedId] = useState(null); // Tracks the selected reimbursement ID
-  const [fromCreate, setFromCreate] = useState(false); // Track if navigation is from Create button
+  const [currentView, setCurrentView] = useState("master");
+  const [selectedRowData, setSelectedRowData] = useState(null); // Store selected row data
 
-  // Function to navigate to ObjectPage, optionally with an ID
-  const navigateToObjectPage = (id = null, isFromCreate = false) => {
-    setSelectedId(id); // Set the selected ID (null if "Create" button clicked)
-    setFromCreate(isFromCreate); // Set if navigation is from Create button
-    setCurrentView("object"); // Switch to ObjectPage view
+  // Function to navigate to ObjectPage with selected row data
+  const navigateToObjectPage = (rowData) => {
+    setSelectedRowData(rowData); // Pass row data to ObjectPage
+    setCurrentView("object");
+  };
+
+  // Function to navigate to ObjectCreate
+  const navigateToObjectCreate = () => {
+    setSelectedRowData(null); // Reset selected row data
+    setCurrentView("create"); // Switch to ObjectCreate view
   };
 
   // Function to navigate back to MasterPage
   const navigateToMasterPage = () => {
-    setSelectedId(null); // Reset the selected ID
-    setFromCreate(false); // Reset fromCreate flag
-    setCurrentView("master"); // Switch to MasterPage view
+    setCurrentView("master");
   };
 
   return (
@@ -28,14 +31,17 @@ const App = () => {
       <AppBar />
       {currentView === "master" ? (
         <MasterPage 
-          onRowClick={navigateToObjectPage}  // Pass row navigation function
-          onCreateClick={() => navigateToObjectPage(null, true)} // Pass "Create" button navigation
+          onRowClick={navigateToObjectPage} 
+          onCreateClick={navigateToObjectCreate} 
+        />
+      ) : currentView === "object" ? (
+        <ObjectPage 
+          rowData={selectedRowData} 
+          onBack={navigateToMasterPage} 
         />
       ) : (
-        <ObjectPage 
-          id={selectedId} 
-          onBack={navigateToMasterPage} 
-          fromCreate={fromCreate} // Pass the fromCreate flag
+        <ObjectCreate 
+          onBack={navigateToMasterPage} fromCreate={true}
         />
       )}
     </div>

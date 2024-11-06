@@ -52,6 +52,7 @@ export default function MasterPage({ onRowClick, onCreateClick }) {
   return (
     <Container disableGutters>
       <Box mb={2}>
+        <Toolbar></Toolbar>
         <Toolbar>
           <TextField
             label="Reimbursement ID"
@@ -82,7 +83,7 @@ export default function MasterPage({ onRowClick, onCreateClick }) {
           <Button variant="contained" color="primary" onClick={() => loadData(true)} style={{ marginRight: "8px" }}>
             Apply Filters
           </Button>
-          <Button variant="outlined" color="secondary" style={{ right: "-34%", position: "relative" }} onClick={() => loadData(true)}>
+          <Button variant="outlined" color="secondary" style={{ right: "-22%", position: "relative" }} onClick={() => loadData(true)}>
             Go
           </Button>
           <Button variant="contained" color="primary" onClick={onCreateClick} style={{ marginLeft: "auto" }}>
@@ -102,6 +103,7 @@ export default function MasterPage({ onRowClick, onCreateClick }) {
           onPageChange={(params) => loadData(false, params.page * PAGE_SIZE)}
           onRowClick={(params) => onRowClick(params.row.reimbursmentId)}
         />
+
       </Box>
     </Container>
   );

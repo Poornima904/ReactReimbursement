@@ -14,15 +14,7 @@ const useStyles = makeStyles((theme) => ({
     whiteSpace: "nowrap",
     position: "relative",
     animation: `$moveText 10s linear infinite`, // Infinite left-to-right animation
-  },
-  "@keyframes moveText": {
-    "0%": {
-      transform: "translateX(-100%)", // Start fully outside from the left
-    },
-    "100%": {
-      transform: "translateX(100%)", // Move fully outside to the right
-    },
-  },
+  }
 }));
 
 export default function AppMainBar() {
