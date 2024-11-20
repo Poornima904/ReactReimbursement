@@ -29,6 +29,6 @@ export default function AppMainBar() {
           </Typography>
         </div>
       </Toolbar>
-    </AppBar>
+     </AppBar>
   );
 }

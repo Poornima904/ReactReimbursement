@@ -36,43 +36,8 @@
 .default-section {
     border: 1px solid #ccc;
 }
-
-/* Custom style for editable cells */
-.editable-cell {
-    background-color: white !important;  /* White background for editable cells */
-    border: 1px solid #ccc;  /* Light grey border */
-    border-radius: 4px;
-    padding: 4px;
+.footer{
+    padding-left: 75%;
 }
 
-/* Optional: Add some focus styles when editing */
-.editable-cell.Mui-focused {
-    outline: 2px solid #3f51b5;  /* Blue outline when cell is focused */
-}
 
-/* Ensure dropdown visibility and positioning */
-.MuiSelect-root {
-    z-index: 1000; /* Make sure the select dropdown appears above other elements */
-}
-
-/* Footer Styling */
-.fixed-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    background-color: #f0f0f0;
-    padding: 16px;
-    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.footer-button {
-    margin-right: 8px;
-}
-
-/* Add overflow management for the DataGrid parent */
-.MuiDataGrid-root {
-    overflow: visible !important; /* Allow dropdown to appear even if the DataGrid is scrollable */
-}

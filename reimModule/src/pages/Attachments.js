@@ -1,94 +1,154 @@
-import React, { useState, useCallback } from "react";
-import {
-  Button,
-  Box,
-  Typography,
-  Paper,
-  IconButton,
-  Avatar,
-} from "@material-ui/core";
+import React, { useState, useCallback, useEffect } from "react";
+import { Button, Box, Typography, Paper, IconButton, Avatar } from "@material-ui/core";
 import { debounce } from "lodash";
 import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 import PictureAsPdfIcon from "@material-ui/icons/PictureAsPdf";
 import ImageIcon from "@material-ui/icons/Image";
 import DescriptionIcon from "@material-ui/icons/Description";
 import InsertChartIcon from "@material-ui/icons/InsertChart";
 import attachmentImage from "../assets/attachmentImage.png";
+import { getAttachment,deleteAttachment } from "api";
+
 
 
 // Helper function to extract file extension
-const getFileExtension = (fileName) => {
-  return fileName.split('.').pop().toLowerCase();
-};
+const getFileExtension = (fileName) => fileName.split('.').pop().toLowerCase();
 
 // Function to return the appropriate icon based on the file extension
 const getFileIcon = (fileName) => {
   const extension = getFileExtension(fileName);
   switch (extension) {
     case "pdf":
-      return <PictureAsPdfIcon style={{ fontSize: 30, color: "#e57373" }} />; // Red for PDF
+      return <PictureAsPdfIcon style={{ fontSize: 30, color: "#e57373" }} />;
     case "jpg":
     case "jpeg":
     case "png":
     case "gif":
-      return <ImageIcon style={{ fontSize: 30, color: "#64b5f6" }} />; // Blue for images
+      return <ImageIcon style={{ fontSize: 30, color: "#64b5f6" }} />;
     case "doc":
     case "docx":
-      return <DescriptionIcon style={{ fontSize: 30, color: "#4caf50" }} />; // Green for documents
+      return <DescriptionIcon style={{ fontSize: 30, color: "#4caf50" }} />;
     case "xls":
     case "xlsx":
-      return <InsertChartIcon style={{ fontSize: 30, color: "#ffeb3b" }} />; // Yellow for spreadsheets
+      return <InsertChartIcon style={{ fontSize: 30, color: "#ffeb3b" }} />;
     default:
-      return <InsertDriveFileIcon style={{ fontSize: 30, color: "#757575" }} />; // Grey for default files
+      return <InsertDriveFileIcon style={{ fontSize: 30, color: "#757575" }} />;
   }
 };
 
-const Attachments = () => {
-  const [files, setFiles] = useState([]);
+const Attachments = ({ reimbursmentId, files, setFiles, isEditing, newFiles, setNewFiles }) => {
+  const [fileCounter, setFileCounter] = useState(1); // Counter for unique file IDs
 
   const handleFileUpload = useCallback(
-    debounce((event) => {
-      const file = event.target.files[0];
-      if (file) {
-        setFiles((prevFiles) => [
-          ...prevFiles,
-          {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified,
-            lastModifiedDate: file.lastModifiedDate,
-            previewUrl: URL.createObjectURL(file),
-          },
-        ]);
-      }
-    }, 300),
-    []
-  ); // Debounce for 300ms
+    debounce(async (event) => {
+      const uploadedFiles = Array.from(event.target.files); // Array of selected files
 
-  const handleRemoveFile = (index) => {
-    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+      // Filter out files that are already in the current files state based on file name
+      const existingFileNames = files.map((file) => file.fileName);
+      const uniqueFiles = uploadedFiles.filter(
+        (file) => !existingFileNames.includes(file.name)
+      );
+
+      const newFilesList = await Promise.all(
+        uniqueFiles.map(async (file) => {
+          // const Id = `file-${fileCounter + files.length}`;
+          const reader = new FileReader();
+
+          return new Promise((resolve) => {
+            reader.onloadend = () => {
+              const base64Content = reader.result.split(",")[1]; // Base64 content
+              const newFile = {
+                id: '',
+                reimbursmentId: reimbursmentId,
+                mediaType: file.type,
+                fileName: file.name,
+                size: file.size,
+                url: file.name,
+                content: base64Content,
+                lastModified: file.lastModified,
+                isNew: true,
+              };
+              resolve(newFile);
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+
+      setFiles((prevFiles) => [...prevFiles, ...newFilesList.filter(Boolean)]);
+      setNewFiles((prevNewFiles) => [...prevNewFiles, ...newFilesList.filter(Boolean)]);
+      setFileCounter((prevCounter) => prevCounter + uploadedFiles.length);
+    }, 300),
+    [fileCounter, files, reimbursmentId]
+  );
+
+  useEffect(() => {
+    const fetchAttachments = async () => {
+      try {
+        const filteredFiles = await getAttachment(reimbursmentId);
+        setFiles(filteredFiles);
+        console.log("Filtered Attachments:", filteredFiles);
+      } catch (error) {
+        console.error("Error fetching attachments", error);
+      }
+    };
+
+    fetchAttachments();
+  }, [reimbursmentId, setFiles]);
+
+  const formatFileSize = (size) => {
+    const units = ["bytes", "KB", "MB", "GB", "TB"];
+    let index = 0;
+    while (size >= 1024 && index < units.length - 1) {
+      size /= 1024;
+      index++;
+    }
+    return `${size.toFixed(2)} ${units[index]}`;
   };
+
+  const handleRemoveFile = async (id) => {
+    // Find the file to delete
+    const fileToDelete = files.find((file) => file.id === id);
+    if (fileToDelete && fileToDelete.isNew !== true) {
+      try {
+        // Call API to delete the file from the server
+        await deleteAttachment(reimbursmentId, fileToDelete.ID);
+      } catch (error) {
+        console.error("Error deleting file from server:", error);
+      }
+    }
+    const afterdelete = await getAttachment(reimbursmentId);
+    setFiles(afterdelete);
+    setNewFiles(afterdelete);
+   
+  
+    // // Update the local state after the file has been removed
+    // setFiles((prevFiles) => prevFiles.filter((file) => file.id !== id));
+    // setNewFiles((prevNewFiles) => prevNewFiles.filter((file) => file.id !== id));
+    console.log("ghj")
+  };
+  
+  
 
   return (
     <Box>
-      {/* File Upload Input */}
       <input
         accept="*/*"
         style={{ display: "none" }}
         id="file-upload"
         type="file"
+        multiple // Allow multiple file selection
         onChange={handleFileUpload}
       />
-      <label htmlFor="file-upload" style={{ marginLeft: "92%" }}>
-        <Button variant="contained" color="primary" component="span">
-          Upload File
-        </Button>
-      </label>
+      {isEditing ?
+        (<label htmlFor="file-upload" style={{ marginLeft: "89%" }}>
+          <Button variant="contained" color="primary" component="span">
+            Upload Files
+          </Button>
+        </label>) : (<></>)}
 
-      {/* Display Background Image if no files */}
       {files.length === 0 && (
         <Box
           mt={4}
@@ -98,74 +158,64 @@ const Attachments = () => {
           justifyContent="center"
           style={{
             backgroundImage: `url(${attachmentImage})`,
-            backgroundSize: "contain",  // Use "contain" to ensure the whole image is visible
-            backgroundPosition: "center", // Center the image
-            backgroundRepeat: "no-repeat", // Prevent the image from repeating
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
             backgroundColor: "#f0f0f0",
           }}
         >
-          <Typography
-            variant="h6"
-            style={{ color: "#fff", textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}
-          >
+          <Typography variant="h6" style={{ color: "#fff", textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
             No files uploaded yet
           </Typography>
         </Box>
       )}
 
-      {/* Display Uploaded Files Information */}
       {files.length > 0 && (
         <Paper style={{ marginTop: "16px", padding: "16px" }}>
-          <Typography variant="h6" style={{ marginBottom: "16px" }}>
-            Uploaded Files
-          </Typography>
-          {files.map((file, index) => (
+          {files.map((file) => (
             <Box
-              key={index}
+              key={file.id}
               mb={2}
               display="flex"
               alignItems="center"
               justifyContent="space-between"
+              padding="8px"
               borderBottom="1px solid #ddd"
-              pb={1}
             >
-              {/* File Icon */}
-              <Avatar
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  marginRight: "16px",
-                  width: 50,
-                  height: 50,
-                }}
-              >
-                {getFileIcon(file.name)}
+              <Avatar style={{ backgroundColor: "#f5f5f5", marginRight: "16px" }}>
+                {getFileIcon(file.fileName)}
               </Avatar>
+              <Box display="flex" alignItems="center" justifyContent="space-between" width="100%" flexWrap="wrap">
+                <Box display="flex" alignItems="center" style={{ flexGrow: 1, minWidth: "150px" }}>
+                  <Typography variant="body2" style={{ marginRight: "10px", wordBreak: "break-word" }}>
+                    <strong>File Name:</strong> {file.fileName}
+                  </Typography>
+                </Box>
 
-              {/* File Details */}
-              <Box display="flex" flexGrow={1}>
-                <Typography variant="body1" style={{ marginRight: "16px" }}>
-                  <strong>File Name:</strong> {file.name}
-                </Typography>
-                <Typography variant="body1" style={{ marginRight: "16px" }}>
-                  <strong>File Size:</strong> {`${file.size} bytes`}
-                </Typography>
-                <Typography variant="body1" style={{ marginRight: "16px" }}>
-                  <strong>File Type:</strong> {file.type}
-                </Typography>
-                <Typography variant="body1" style={{ marginRight: "16px" }}>
-                  <strong>Last Modified:</strong> {new Date(file.lastModified).toLocaleDateString()}
-                </Typography>
+                <Box display="flex" alignItems="center" style={{ flexGrow: 1, minWidth: "150px" }}>
+                  <Typography variant="body2" style={{ marginRight: "10px", wordBreak: "break-word" }}>
+                    <strong>Size:</strong> {formatFileSize(file.size)}
+                  </Typography>
+                </Box>
+
+                <Box display="flex" alignItems="center" style={{ flexGrow: 1, minWidth: "150px" }}>
+                  <Typography variant="body2" style={{ marginRight: "10px", wordBreak: "break-word" }}>
+                    <strong>Type:</strong> {file.mediaType}
+                  </Typography>
+                </Box>
+
+                <Box display="flex" alignItems="center" style={{ flexGrow: 1, minWidth: "150px" }}>
+                  <Typography variant="body2" style={{ wordBreak: "break-word" }}>
+                    <strong>Last Modified:</strong> {new Date(file.lastModified).toLocaleDateString()}
+                  </Typography>
+                </Box>
               </Box>
 
-              {/* Edit and Remove Icons */}
-              <Box>
-                <IconButton onClick={() => console.log(`Edit ${file.name}`)}>
-                  <EditIcon color="primary" />
-                </IconButton>
-                <IconButton onClick={() => handleRemoveFile(index)}>
+              {isEditing ? (
+                <IconButton onClick={() => handleRemoveFile(file.id)}>
                   <DeleteIcon color="secondary" />
                 </IconButton>
-              </Box>
+              ) : (<></>)}
             </Box>
           ))}
         </Paper>

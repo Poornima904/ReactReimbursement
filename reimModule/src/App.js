@@ -3,27 +3,26 @@ import "./App.css";
 import AppBar from "components/AppBar";
 import MasterPage from "pages/MasterPage";
 import ObjectPage from "pages/ObjectPage";
-import ObjectCreate from "pages/ObjectCreate"; // Import the new ObjectCreate component
+import ObjectCreate from "pages/ObjectCreate";
 
 const App = () => {
   const [currentView, setCurrentView] = useState("master");
-  const [selectedRowData, setSelectedRowData] = useState(null); // Store selected row data
+  const [selectedRowData, setSelectedRowData] = useState(null);
+  const [masterPageKey, setMasterPageKey] = useState(0); // Key to force remount
 
-  // Function to navigate to ObjectPage with selected row data
   const navigateToObjectPage = (rowData) => {
-    setSelectedRowData(rowData); // Pass row data to ObjectPage
+    setSelectedRowData(rowData);
     setCurrentView("object");
   };
 
-  // Function to navigate to ObjectCreate
   const navigateToObjectCreate = () => {
-    setSelectedRowData(null); // Reset selected row data
-    setCurrentView("create"); // Switch to ObjectCreate view
+    setSelectedRowData(null);
+    setCurrentView("create");
   };
 
-  // Function to navigate back to MasterPage
   const navigateToMasterPage = () => {
     setCurrentView("master");
+    setMasterPageKey((prevKey) => prevKey + 1); // Update key to remount MasterPage
   };
 
   return (
@@ -31,7 +30,8 @@ const App = () => {
       <AppBar />
       {currentView === "master" ? (
         <MasterPage 
-          onRowClick={navigateToObjectPage} 
+          key={masterPageKey} // Add the key here
+          onRowClick={(rowData) => navigateToObjectPage(rowData)} 
           onCreateClick={navigateToObjectCreate} 
         />
       ) : currentView === "object" ? (
@@ -41,7 +41,8 @@ const App = () => {
         />
       ) : (
         <ObjectCreate 
-          onBack={navigateToMasterPage} fromCreate={true}
+          onBack={navigateToMasterPage} 
+          fromCreate={true}
         />
       )}
     </div>

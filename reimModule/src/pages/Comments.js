@@ -1,33 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { Button, Box, OutlinedInput, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Divider, Avatar } from "@material-ui/core";
+import { getComments } from "api";
 
-const Comments = () => {
+const Comments = ({comment, setComment, reimbursmentId}) => {
     const [open, setOpen] = useState(false);
-    const [comment, setComment] = useState("");
-    const [history, setHistory] = useState([
-        { id: 1, text: "Initial comment", date: "2023-10-20", user: "Alice", avatar: "/path/to/alice-avatar.jpg" },
-        { id: 2, text: "Follow-up comment", date: "2023-10-25", user: "Bob", avatar: "/path/to/bob-avatar.jpg" },
-        // Add more comments with avatar URLs as needed
-    ]);
+    const [history, setHistory] = useState([]);
+
+    useEffect(() => {
+        const fetchComments = async () => {
+            try {
+                const comments = await getComments(reimbursmentId);
+                console.log("comments",comments);
+                const formattedComments = comments.map((item, index) => ({
+                    id: index + 1,
+                    text: item.textArea, // accessing text from comments.value[0].textArea
+                    date: item.date || new Date().toISOString().slice(0, 10), // Use item.date if available
+                    user: item.user || "Unknown User",
+                    avatar: item.avatar || "/path/to/default-avatar.jpg" // Placeholder avatar
+                }));
+                setHistory(formattedComments);
+            } catch (error) {
+                console.error("Failed to fetch comments:", error);
+            }
+        };
+
+        fetchComments();
+    }, [reimbursmentId]);
 
     const handleClickOpen = () => {
         setOpen(true);
     };
 
     const handleClose = () => {
-        setOpen(false);
-    };
-
-    const handleSaveComment = () => {
-        const newComment = {
-            id: history.length + 1,
-            text: comment,
-            date: new Date().toISOString().slice(0, 10), // format date as YYYY-MM-DD
-            user: "CurrentUser", // replace with actual user data if available
-            avatar: "/path/to/currentuser-avatar.jpg", // Add your avatar path here
-        };
-        setHistory([newComment, ...history]); // add new comment at the beginning
-        setComment("");
         setOpen(false);
     };
 
@@ -77,15 +81,9 @@ const Comments = () => {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleSaveComment} color="primary" variant="contained">
-                        Save
-                    </Button>
                     <Button onClick={handleClose} color="secondary">
                         Cancel
                     </Button>
-
-
-                    <Button>hrloo</Button>
                 </DialogActions>
             </Dialog>
         </>

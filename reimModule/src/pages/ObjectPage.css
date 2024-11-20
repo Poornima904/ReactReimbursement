@@ -27,10 +27,12 @@
 }
 
 .highlighted-section {
-    background-color: #e0f7fa;
-    border: 2px solid #00796b;
+    border: 2px solid #8edde5;
 }
 
 .default-section {
-    border: 1px solid #ccc;
+    border: 1px solid #97e5e4;
+}
+.footer1{
+    padding-left: 81%;
 }
