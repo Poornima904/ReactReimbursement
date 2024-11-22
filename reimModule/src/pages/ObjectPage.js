@@ -1,7 +1,6 @@
 import { Button, Box, Typography, AppBar, Tabs, Tab, OutlinedInput, Toolbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions } from "@material-ui/core";
-import { getReimbursementItems, getTableCount, getGeneralInfo, updateGeneralInfo,postAttachment } from "api";
+import { getReimbursementItems, getTableCount, getGeneralInfo, updateGeneralInfo,postAttachment,updateAttachments } from "api";
 import React, { useEffect, useRef, useState } from "react";
-import { DataGrid } from "@material-ui/data-grid";
 import Attachments from "./Attachments";
 import Workflow from "./workflow";
 import Comments from "./Comments";
@@ -51,10 +50,19 @@ const ObjectPage = ({ onBack, rowData}) => {
           reimbursmentDate: item.reimbursementDate,
           reimbursmentType: item.reimbursementType,
           IsActiveEntity: true,
-        }))
+        })),
+        headItem3: [{
+          // commentId: `${Math.floor(Math.random() * 10000000)}`, 
+          reimbursmentId,
+          textArea: comment,
+          IsActiveEntity: true,
+        }],
+
       }
       await updateGeneralInfo(rowData, true, payload);
-      await postingAttachments(newFiles);
+      // await postingAttachments(newFiles);
+      await handleAttachments(rowData);
+
       setIsEditing(false);
       setDialogOpen(true);
     } catch (error) {
@@ -62,24 +70,70 @@ const ObjectPage = ({ onBack, rowData}) => {
     }
   };
 
-  const postingAttachments = async (newFiles) => {
-    const payload = newFiles.map((file) => ({
-      reimbursmentId,
-      mediaType: file.mediaType,
-      fileName: file.fileName,
-      size: file.size,
-      url: file.url,
-      content: file.content
-    }));
+  // const postingAttachments = async (newFiles) => {
+  //   const payload = newFiles.map((file) => ({
+  //     reimbursmentId,
+  //     mediaType: file.mediaType,
+  //     fileName: file.fileName,
+  //     size: file.size,
+  //     url: file.url,
+  //     content: file.content
+  //   }));
 
+  //   try {
+  //     const response = await postAttachment(payload); 
+  //     console.log("Files uploaded successfully:", response);
+  //   } catch (error) {
+  //     console.error("Error uploading files:", error);
+  //   }
+  // };
+
+
+  const handleAttachments = async (reimbursmentId) => {
+    if (!newFiles || newFiles.length === 0) return;
+  
     try {
-      const response = await postAttachment(payload); 
-      console.log("Files uploaded successfully:", response);
+      for (const file of newFiles) {
+        // Step 1: Upload the file
+        const uploadPayload = {
+          reimbursmentId,
+          mediaType: file.mediaType,
+          fileName: file.fileName,
+          size: file.size,
+          content: file.content,
+        };
+  
+        console.log("Uploading file:", uploadPayload);
+  
+        const uploadResponse = await postAttachment(uploadPayload);
+        console.log("Upload Response:", uploadResponse);
+  
+        // Extract the ID from the upload response
+        const id = uploadResponse.ID;
+        if (!id) {
+          console.error("Failed to get ID from upload response for file:", file);
+          continue;
+        }
+  
+        console.log("File ID received:", id);
+  
+        // Step 2: Perform PATCH call to update the file URL
+        const updatePayload = {
+          url: `/odata/v4/my/Files(${id})/content`,
+        };
+  
+        console.log("Updating file with ID:", id, "Payload:", updatePayload);
+  
+        const updateResponse = await updateAttachments(id, updatePayload);
+        console.log("Attachment updated successfully:", updateResponse);
+      }
+  
+      console.log("All files processed successfully.");
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error while handling attachments:", error);
     }
   };
-
+  
 
   const handleCancel = () => {
     console.log("Cancelling changes...");
@@ -105,8 +159,6 @@ const ObjectPage = ({ onBack, rowData}) => {
     { field: "amountEligibleToClaim", headerName: "Amount Eligible To Claim", flex: 1 }
   ];
 
-  const PAGE_SIZE = 15;
-
   useEffect(() => {
     loadData(true);
     fetchGeneralInformation();
@@ -127,11 +179,12 @@ const ObjectPage = ({ onBack, rowData}) => {
   };
 
 
-  const handleInputChange = (field, index, value) => {
-    const updatedItems = [...reimItems];
-    updatedItems[index][field] = value;
-    setItems(updatedItems);
-  };
+  // const handleInputChange = (field, index, value) => {
+  //   const updatedItems = [...reimItems];
+  //   updatedItems[index][field] = value;
+  //   setItems(updatedItems);
+  // };
+  
   const loadData = async (isFirstLoad, skip = 0) => {
     try {
       setLoading(true);
@@ -259,33 +312,36 @@ const ObjectPage = ({ onBack, rowData}) => {
             >
               <Typography variant="h6"><strong>Reimbursement Details</strong></Typography>
               {isEditing ? (
-                <ReimbursementItems reimItems={reimItems} setItems={setItems} reimbursmentId={reimbursmentId} status={status} reimbursementDate={reimbursementDate} totalAmount={totalAmount} setTotalAmount={setTotalAmount} validationErrors={validationErrors} />
+                <ReimbursementItems reimItems={reimItems} setItems={setItems} isEditing={isEditing} reimbursmentId={reimbursmentId} status={status} reimbursementDate={reimbursementDate} totalAmount={totalAmount} setTotalAmount={setTotalAmount} validationErrors={validationErrors} />
               ) : (
                 <Box py={5}>
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          {columns.map((column) => (
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        {columns
+                          .filter((column) => column.field !== "reimbursmentId") // Exclude reimbursmentId column
+                          .map((column) => (
                             <TableCell key={column.field}>{column.headerName}</TableCell>
                           ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {reimItems.map((item, index) => (
+                        <TableRow key={index}>
+                          {/* Render only the fields you want */}
+                          <TableCell>{item.item}</TableCell>
+                          <TableCell>{item.reimbursmentType}</TableCell>
+                          <TableCell>{item.reimbursmentDate}</TableCell>
+                          <TableCell>{item.amountToBeReimbursed}</TableCell>
+                          <TableCell>{item.amountEligibleToClaim}</TableCell>
                         </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {reimItems.map((item, index) => (
-                          <TableRow key={item.reimbursmentId}>
-                            <TableCell>{item.reimbursmentId}</TableCell>
-                            <TableCell>{item.item}</TableCell>
-                            <TableCell>{item.reimbursmentType}</TableCell>
-                            <TableCell>{item.reimbursmentDate}</TableCell>
-                            <TableCell>{item.amountToBeReimbursed}</TableCell>
-                            <TableCell>{item.amountEligibleToClaim}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>)
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>)
+              
               }
 
             </Box>

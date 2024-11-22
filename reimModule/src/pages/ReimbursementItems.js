@@ -4,7 +4,7 @@ import {
   TableCell, TableContainer, TableHead, TableRow, Paper
 } from "@material-ui/core";
 
-export default function ReimbursementItems({ reimItems, setItems, reimbursmentId, status, reimbursementDate, totalAmount, setTotalAmount, validationErrors }) {
+export default function ReimbursementItems({ reimItems, setItems, isEditing, reimbursmentId, status, reimbursementDate, totalAmount, setTotalAmount, validationErrors }) {
   const [nextItemId, setNextItemId] = useState(10);
 
   const reimbursementTypes = ["Travel", "Meals", "Supplies", "Accommodation"];
@@ -35,6 +35,15 @@ export default function ReimbursementItems({ reimItems, setItems, reimbursmentId
     setNextItemId(prevId => prevId + 10);
 
   };
+
+
+  const handleReimbursementDateChange = (e, id) => {
+    const updatedItems = reimItems.map((item) =>
+      item.id === id ? { ...item, reimbursementDate: e.target.value } : item
+    );
+    setItems(updatedItems);
+  };
+
 
   const handleReimbursementTypeChange = (value, id) => {
     const updatedItems = reimItems.map(item =>
@@ -71,16 +80,6 @@ export default function ReimbursementItems({ reimItems, setItems, reimbursmentId
     setTotalAmount(total);
   };
 
-  const handleReimbursementDateChange = (e, id) => {
-    const updatedItems = reimItems.map(item =>
-      item.id === id
-        ? { ...item, reimbursementDate: e.target.value }
-        : item
-    );
-    setItems(updatedItems);
-  };
-
-  
 
   return (
 
@@ -102,11 +101,19 @@ export default function ReimbursementItems({ reimItems, setItems, reimbursmentId
                 <TableCell className="custom-table-cell" style={{ width: 'auto', whiteSpace: 'nowrap' }}>
                   {item.item}
                 </TableCell>
-                <TableCell className="custom-table-cell" style={{ width: 'auto', whiteSpace: 'nowrap' }}>
+                <TableCell
+                  className="custom-table-cell"
+                  style={{ width: "auto", whiteSpace: "nowrap" }}
+                >
                   <Select
-                    value={item.reimbursementType || ""}
-                    onChange={(e) => handleReimbursementTypeChange(e.target.value, item.id)}
+                    value={item.reimbursementType} // Show the existing value
+                    onChange={(e) => handleReimbursementTypeChange(e.target.value, item.id)} // Update the value
+                    displayEmpty
+                    style={{ width: "100%" }}
                   >
+                    <MenuItem value={item.reimbursementType} disabled>
+                      Select Type
+                    </MenuItem>
                     {reimbursementTypes.map((type) => (
                       <MenuItem key={type} value={type}>
                         {type}
@@ -114,29 +121,36 @@ export default function ReimbursementItems({ reimItems, setItems, reimbursmentId
                     ))}
                   </Select>
                 </TableCell>
-                <TableCell className="custom-table-cell" style={{ width: 'auto', whiteSpace: 'nowrap' }}>
+
+                <TableCell
+                  className="custom-table-cell"
+                  style={{ width: "auto", whiteSpace: "nowrap" }}
+                >
                   <TextField
                     type="date"
-                    value={item.reimbursementDate || ""}
-                    onChange={(e) => handleReimbursementDateChange(e, item.id)}
-                    className="editable-cell"
+                    value={item.reimbursementDate} // Show the existing value
+                    onChange={(e) => handleReimbursementDateChange(e, item.id)} // Update the value
                     InputLabelProps={{ shrink: true }}
-                    error={!!validationErrors[`item-${item.id}-reimbursementDate`]}
-                    helperText={validationErrors[`item-${item.id}-reimbursementDate`]}
+                    disabled={!isEditing}
+                    style={{ width: "100%" }}
+                    
                   />
+             
                 </TableCell>
+
                 <TableCell className="custom-table-cell" style={{ width: 'auto', whiteSpace: 'nowrap' }}>
                   <OutlinedInput
                     value={item.amountToBeReimbursed || ""}
                     onChange={(e) => handleAmountToBeReimbursedChange(e, item.id)}
                     placeholder="Amount to be reimbursed"
-                    className="editable-cell"
+                
                     error={!!validationErrors[`item-${item.id}-amountToBeReimbursed`]}
                     aria-describedby={`item-${item.id}-amountToBeReimbursed-error`}
                   />
                 </TableCell>
                 <TableCell>{item.amountEligibleToClaim}</TableCell>
               </TableRow>
+
 
             ))}
           </TableBody>

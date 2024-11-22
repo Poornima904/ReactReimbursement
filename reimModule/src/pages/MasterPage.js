@@ -105,7 +105,7 @@ export default function MasterPage({ onRowClick, onCreateClick }) {
        <Button variant="contained" color="primary" onClick={applyFilters}>
           Apply Filters
         </Button>
-        <Button variant="outlined" color="secondary" onClick={() => loadData(true)} style={{left:"31%"}}>
+        <Button variant="outlined" color="secondary" onClick={loadData} style={{left:"31%"}}>
           Refresh
         </Button>
         <Button variant="contained" color="primary" onClick={onCreateClick} style={{left:"31%"}}>
@@ -115,39 +115,61 @@ export default function MasterPage({ onRowClick, onCreateClick }) {
 
 
       <Box
-        component={Paper}
-        elevation={3}
-        sx={{
-          overflow: "hidden",
-          borderRadius: 6,
-          border: "2px solid #3f51b5", 
-          padding: 1,
+  component={Paper}
+  elevation={3}
+  sx={{
+    overflow: "hidden",
+    borderRadius: 6,
+    border: "2px solid #3f51b5",
+    padding: 1,
+    height: 500, // Set constant height
+    width: 1275,  // Set constant width
+    display: "flex",
+    flexDirection: "column", // Ensure the table container fills the height
+  }}
+>
+  <TableContainer
+    component={Paper}
+    sx={{
+      maxHeight: "100%", // Allow table to fill the Box height
+      overflowY: "auto", // Add vertical scrolling if content overflows
+    }}
+  >
+    <Table stickyHeader> {/* Add sticky header for better usability */}
+      <TableHead>
+        <TableRow>
+          {columns.map((column) => (
+            <TableCell
+              key={column.field}
+              style={{
+                width: column.width,
+                fontWeight: "bold",
+                backgroundColor: "#f0f0f0",
+              }}
+            >
+              {column.headerName}
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {items.map((item, index) => (
+          <TableRow
+            key={index}
+            hover
+            onClick={() => onRowClick(item.reimbursmentId)}
+            style={{ cursor: "pointer" }}
+          >
+            <TableCell>{item.reimbursmentId}</TableCell>
+            <TableCell>{item.reimbursementDate}</TableCell>
+            <TableCell>{item.totalAmount}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
+</Box>
 
-        }}
-      >
-        <TableContainer component={Paper} sx={{ maxHeight: 400, overflowY: "auto" }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell key={column.field} style={{ width: column.width, fontWeight: "bold", backgroundColor: "#f0f0f0" }}>
-                    {column.headerName}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item, index) => (
-                <TableRow key={index} hover onClick={() => onRowClick(item.reimbursmentId)} style={{ cursor: "pointer" }}>
-                  <TableCell>{item.reimbursmentId}</TableCell>
-                  <TableCell>{item.reimbursementDate}</TableCell>
-                  <TableCell>{item.totalAmount}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
     </Container>
   );
 }

@@ -81,21 +81,21 @@ export const postWorkflowData = async (payload) => {
 
 //Patch
 export const updateAttachments = async (ID, payload) => {
-  try {
-    let data;
-    if (!ID) {  // Check if ID is empty or undefined
-      data = await instance.patch(`/Files('')`, payload);
-      console.log("id undefined");
-    } else {
-      data = await instance.patch(`/Files('${ID}')`, payload);
-      console.log("id defined");
-    }
+  if (!ID) {
+    console.error("Cannot update attachment: Missing ID");
+    return;
+  }
 
+  try {
+    console.log(`Sending PATCH to /Files('${ID}') with payload:`, payload);
+    const { data } = await instance.patch(`/Files('${ID}')`, payload);
+    console.log("Update response:", data);
     return data;
   } catch (error) {
     console.error("Error updating attachments:", error);
   }
 };
+
 
 export const updateGeneralInfo = async (reimbursmentId, IsActiveEntity, payload) => {
   try {
@@ -109,8 +109,8 @@ export const updateGeneralInfo = async (reimbursmentId, IsActiveEntity, payload)
   }
 };
 
-export const deleteAttachment = async(reimbursmentId, ID)=>{
-  const { data } = await instance.delete( `/Files(reimbursmentId='${reimbursmentId}',ID=${ID})`);
+export const deleteAttachment = async (reimbursmentId, ID) => {
+  const { data } = await instance.delete(`/Files(reimbursmentId='${reimbursmentId}',ID=${ID})`);
   return data;
 
 }

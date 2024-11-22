@@ -10,7 +10,7 @@ import Attachments from "./Attachments";
 import Workflow from "./workflow";
 import Comments from "./Comments";
 import ReimbursementItems from "./ReimbursementItems";
-import { createReimbursement, getReimbursementWorkflowItems, postAttachment } from "api";
+import { createReimbursement, getReimbursementWorkflowItems, postAttachment,updateAttachments } from "api";
 import "./ObjectCreate.css";
 import Loading from "./Loading";
 
@@ -113,32 +113,88 @@ const ObjectCreate = ({ id, onBack, fromCreate }) => {
 
     try {
       const response = await createReimbursement(payload);
-      const postAttachresponse = postAttachments(files);
-      console.log("Data created successfully:", response, postAttachresponse);
+      console.log("Data created successfully:", response);
+      await handleAttachments(response.reimbursmentId);
+
       setSubmissionDialogOpen(true);
-      onBack();
     } catch (error) {
       console.error("Error creating data:", error);
     }
   };
 
-  const postAttachments = async (files) => {
-    const payload = files.map((file) => ({
-      reimbursmentId,
-      mediaType: file.mediaType,
-      fileName: file.fileName,
-      size: file.size,
-      url: file.url,
-      content: file.content
-    }));
+  // const handleAttachments = async (reimbursmentId) => {
+  //   if (!files || files.length === 0) return;
 
+  //   const uploadPayload = files.map((file) => ({
+  //     reimbursmentId,
+  //     mediaType: file.mediaType,
+  //     fileName: file.fileName,
+  //     size: file.size,
+  //     content: file.content
+  //   }));
+
+  //   try {
+  //     const uploadResponse = await postAttachment(uploadPayload);
+  //     console.log("Attachments uploaded:", uploadResponse);
+
+  //     // Update attachment URLs
+  //     const updatePayload = files.map((file) => ({
+  //       url: `/odata/v4/my/Files(${uploadResponse.ID})/content`,
+  //     }));
+
+  //     const updateResponse = await updateAttachments(uploadResponse.ID, updatePayload);
+  //     console.log("Attachments updated:", updateResponse);
+  //   } catch (error) {
+  //     console.error("Error handling attachments:", error);
+  //   }
+  // };
+
+  const handleAttachments = async (reimbursmentId) => {
+    if (!files || files.length === 0) return;
+  
     try {
-      const response = await postAttachment(payload); // Assuming postAttachment handles an array of files
-      console.log("Files uploaded successfully:", response);
+      for (const file of files) {
+        // Step 1: Upload the file
+        const uploadPayload = {
+          reimbursmentId,
+          mediaType: file.mediaType,
+          fileName: file.fileName,
+          size: file.size,
+          content: file.content,
+        };
+  
+        console.log("Uploading file:", uploadPayload);
+  
+        const uploadResponse = await postAttachment(uploadPayload);
+        console.log("Upload Response:", uploadResponse);
+  
+        // Extract the ID from the upload response
+        const id = uploadResponse.ID;
+        if (!id) {
+          console.error("Failed to get ID from upload response for file:", file);
+          continue;
+        }
+  
+        console.log("File ID received:", id);
+  
+        // Step 2: Perform PATCH call to update the file URL
+        const updatePayload = {
+          url: `/odata/v4/my/Files(${id})/content`,
+        };
+  
+        console.log("Updating file with ID:", id, "Payload:", updatePayload);
+  
+        const updateResponse = await updateAttachments(id, updatePayload);
+        console.log("Attachment updated successfully:", updateResponse);
+      }
+  
+      console.log("All files processed successfully.");
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error while handling attachments:", error);
     }
   };
+  
+  
 
   useEffect(() => {
     generateRandomId();
@@ -243,7 +299,7 @@ const ObjectCreate = ({ id, onBack, fromCreate }) => {
 
             <Box ref={detailsRef} className={`section-box ${activeTab === 1 ? "highlighted-section" : "default-section"}`}>
               <Typography variant="h6"><strong>Reimbursement Details</strong></Typography>
-              <ReimbursementItems reimItems={reimItems} setItems={setItems} reimbursmentId={reimbursmentId} status={status}
+              <ReimbursementItems reimItems={reimItems} setItems={setItems} isEditing="true" reimbursmentId={reimbursmentId} status={status}
                 reimbursementDate={reimbursementDate} totalAmount={totalAmount} setTotalAmount={setTotalAmount} validationErrors={validationErrors} />
             </Box>
 

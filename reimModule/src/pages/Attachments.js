@@ -8,7 +8,7 @@ import ImageIcon from "@material-ui/icons/Image";
 import DescriptionIcon from "@material-ui/icons/Description";
 import InsertChartIcon from "@material-ui/icons/InsertChart";
 import attachmentImage from "../assets/attachmentImage.png";
-import { getAttachment,deleteAttachment } from "api";
+import { getAttachment, deleteAttachment } from "api";
 
 
 
@@ -39,6 +39,16 @@ const getFileIcon = (fileName) => {
 
 const Attachments = ({ reimbursmentId, files, setFiles, isEditing, newFiles, setNewFiles }) => {
   const [fileCounter, setFileCounter] = useState(1); // Counter for unique file IDs
+  const BASE_FILE_URL = "https://0ec7af20trial-dev-reimbursement1-srv.cfapps.us10-001.hana.ondemand.com";
+
+  const handleFileClick = (ID) => {
+    if (!ID) {
+      console.error("File ID is not available.");
+      return;
+    }
+    const fileUrl = `${BASE_FILE_URL}${ID}`;
+    window.open(fileUrl, "_blank"); // Opens the file in a new tab
+  };
 
   const handleFileUpload = useCallback(
     debounce(async (event) => {
@@ -52,19 +62,22 @@ const Attachments = ({ reimbursmentId, files, setFiles, isEditing, newFiles, set
 
       const newFilesList = await Promise.all(
         uniqueFiles.map(async (file) => {
-          // const Id = `file-${fileCounter + files.length}`;
+          const Id = `file-${fileCounter + files.length}`;
           const reader = new FileReader();
+
+          const tempUrl = URL.createObjectURL(file);
+
 
           return new Promise((resolve) => {
             reader.onloadend = () => {
               const base64Content = reader.result.split(",")[1]; // Base64 content
               const newFile = {
-                id: '',
+                id: Id,
                 reimbursmentId: reimbursmentId,
                 mediaType: file.type,
                 fileName: file.name,
                 size: file.size,
-                url: file.name,
+                url: tempUrl,
                 content: base64Content,
                 lastModified: file.lastModified,
                 isNew: true,
@@ -122,15 +135,16 @@ const Attachments = ({ reimbursmentId, files, setFiles, isEditing, newFiles, set
     const afterdelete = await getAttachment(reimbursmentId);
     setFiles(afterdelete);
     setNewFiles(afterdelete);
-   
-  
+
     // // Update the local state after the file has been removed
     // setFiles((prevFiles) => prevFiles.filter((file) => file.id !== id));
     // setNewFiles((prevNewFiles) => prevNewFiles.filter((file) => file.id !== id));
     console.log("ghj")
   };
-  
-  
+
+
+
+
 
   return (
     <Box>
@@ -187,7 +201,11 @@ const Attachments = ({ reimbursmentId, files, setFiles, isEditing, newFiles, set
               </Avatar>
               <Box display="flex" alignItems="center" justifyContent="space-between" width="100%" flexWrap="wrap">
                 <Box display="flex" alignItems="center" style={{ flexGrow: 1, minWidth: "150px" }}>
-                  <Typography variant="body2" style={{ marginRight: "10px", wordBreak: "break-word" }}>
+                <Typography
+                    variant="body2"
+                    style={{ marginRight: "10px", wordBreak: "break-word", cursor: "pointer", color: "#1976d2" }}
+                    onClick={() => handleFileClick(file.url)} // Open file when clicked
+                  >
                     <strong>File Name:</strong> {file.fileName}
                   </Typography>
                 </Box>
@@ -209,13 +227,15 @@ const Attachments = ({ reimbursmentId, files, setFiles, isEditing, newFiles, set
                     <strong>Last Modified:</strong> {new Date(file.lastModified).toLocaleDateString()}
                   </Typography>
                 </Box>
-              </Box>
 
-              {isEditing ? (
-                <IconButton onClick={() => handleRemoveFile(file.id)}>
-                  <DeleteIcon color="secondary" />
-                </IconButton>
-              ) : (<></>)}
+                <Box>
+                  {isEditing && (
+                    <IconButton onClick={() => handleRemoveFile(file.id)}>
+                      <DeleteIcon color="secondary" />
+                    </IconButton>
+                  )}
+                </Box>
+              </Box>
             </Box>
           ))}
         </Paper>
